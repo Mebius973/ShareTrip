@@ -6,7 +6,16 @@ services:
     depends_on:
       - db
     networks:
-      - watchlist
+      - share_trip
+
+  trip-api:
+    build: ./TripApi/TripApi
+    ports:
+      - "9001:8080"
+    depends_on:
+      - db
+    networks:
+      - share_trip
 
   db:
     image: postgres:latest
@@ -18,8 +27,8 @@ services:
     environment:
       - POSTGRES_PASSWORD=postgres
     networks:
-      - watchlist
+      - share_trip
 
 networks:
-  watchlist:
+  share_trip:
     driver: bridge
