@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TripApi.Entities;
 using TripApi.Services;
 
@@ -8,6 +9,7 @@ namespace TripApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TripsController : ControllerBase
     {
         private readonly TripsService _tripService;
@@ -38,7 +40,11 @@ namespace TripApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TripEntity trip)
         {
-            if (await _tripService.CreateAsync(trip)) { 
+            var idString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (idString == null || Guid.TryParse(idString, out Guid ownerId))
+                return Unauthorized();
+
+            if (await _tripService.CreateAsync(ownerId, trip)) { 
                 return Ok();
             }
 

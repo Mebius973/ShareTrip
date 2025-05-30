@@ -6,7 +6,7 @@ namespace TripApi.Repositories
     {
         Task<IList<TripEntity>> GetAllAsync();
         Task<TripEntity?> GetAsync(int id);
-        Task<bool> CreateAsync(TripEntity entity);
+        Task<bool> CreateAsync(Guid ownerId, TripEntity entity);
         Task<bool> UpdateAsync(int id, TripEntity entity);
         Task<bool> DeleteAsync(int id);
     }

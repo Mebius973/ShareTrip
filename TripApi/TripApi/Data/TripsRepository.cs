@@ -26,9 +26,14 @@ namespace TripApi.Data
             return trip?.ToEntity();
         }
 
-        public async Task<bool> CreateAsync(TripEntity entity)
+        public async Task<bool> CreateAsync(Guid ownerId, TripEntity entity)
         {
-            await _context.Trips.AddAsync(new Trip(entity));
+            var trip = await _context.Trips.AddAsync(new Trip(ownerId, entity));
+            await _context.TripParticipants.AddAsync(new TripParticipant
+            {
+                TripId = trip.Entity.Id,
+                UserId = ownerId
+            });
             return await _context.SaveChangesAsync() > 0;
         }
 

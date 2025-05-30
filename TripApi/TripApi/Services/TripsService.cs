@@ -17,9 +17,9 @@ namespace TripApi.Services
         public async Task<TripEntity?> GetAsync(int id) { 
             return await _tripRepository.GetAsync(id);
         }
-        public async Task<bool> CreateAsync(TripEntity trip)
+        public async Task<bool> CreateAsync(Guid ownerId, TripEntity trip)
         {
-            return await _tripRepository.CreateAsync(trip);
+            return await _tripRepository.CreateAsync(ownerId, trip);
         }
 
         public async Task<bool> UpdateAsync(int id, TripEntity trip) {
