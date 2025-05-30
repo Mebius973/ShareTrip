@@ -1,0 +1,25 @@
+services:
+  user-api:
+    build: ./UserApi/UserApi
+    ports:
+      - "9000:8080"
+    depends_on:
+      - db
+    networks:
+      - watchlist
+
+  db:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+    - "5432:5432"
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - watchlist
+
+networks:
+  watchlist:
+    driver: bridge
