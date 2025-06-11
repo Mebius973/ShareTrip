@@ -13,49 +13,93 @@ namespace TripApi.Data
             _context = context;
         }
 
-        public async Task<IList<TripEntity>> GetAllAsync()
+        public async Task<IList<TripEntity>> GetAllAsync(string ownerId)
         {
-            var results = new List<TripEntity>();
-            await _context.Trips.ForEachAsync(trip => results.Add(trip.ToEntity()));
-            return results;
-        }
-
-        public async Task<TripEntity?> GetAsync(int id)
-        {
-            var trip = await _context.Trips.FindAsync(id);
-            return trip?.ToEntity();
-        }
-
-        public async Task<bool> CreateAsync(Guid ownerId, TripEntity entity)
-        {
-            var trip = await _context.Trips.AddAsync(new Trip(ownerId, entity));
-            await _context.TripParticipants.AddAsync(new TripParticipant
+            if (Guid.TryParse(ownerId, out var ownerGuid))
             {
-                TripId = trip.Entity.Id,
-                UserId = ownerId
-            });
-            return await _context.SaveChangesAsync() > 0;
+                var results = new List<TripEntity>();
+                await _context.Trips
+                      .Include(t => t.Participants)
+                      .Where(t => t.Participants.Any(p => p.UserId == ownerGuid))
+                      .ForEachAsync(trip => results.Add(trip.ToEntity()));
+                return results;
+            }
+            else
+            { 
+                throw new ArgumentException("Invalid owner ID (" + ownerId + ") format.");
+            }
         }
 
-        public async Task<bool> UpdateAsync(int id, TripEntity entity)
+        public async Task<TripEntity?> GetAsync(string ownerId, string id)
         {
-            var trip = await _context.Trips.FindAsync(id);
-            if (trip == null) return false;
-            trip.Name = entity.Name;
-            trip.Destination = entity.Destination;
-            trip.Description = entity.Description;
-            trip.StartDate = entity.StartDate;
-            trip.EndDate = entity.EndDate;
-
-            return await _context.SaveChangesAsync() > 0;
+            if (Guid.TryParse(id, out var guid) &&
+                Guid.TryParse(ownerId, out var ownerGuid))
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.Participants)
+                    .FirstOrDefaultAsync(t =>
+                        t.Id == guid &&
+                        t.Participants.Any(p => p.UserId == ownerGuid)
+                    );
+                return trip?.ToEntity();
+            }
+            else
+            {
+                throw new ArgumentException("Invalid ID (" + id + ") or owner ID (" + ownerId + ") format.");
+            }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> CreateAsync(string ownerId, TripEntity entity)
         {
-            var trip = await _context.Trips.FindAsync(id);
-            if (trip == null) return false;
-            _context.Trips.Remove(trip);
-            return await _context.SaveChangesAsync() > 0;
+            if (Guid.TryParse(ownerId, out var ownerGuid))
+            {
+                var trip = await _context.Trips.AddAsync(new Trip(ownerGuid, entity));
+                await _context.TripParticipants.AddAsync(new TripParticipant
+                {
+                    TripId = trip.Entity.Id,
+                    UserId = ownerGuid
+                });
+                return await _context.SaveChangesAsync() > 0;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid owner ID (" + ownerId + ") format.");
+            }
+        }
+
+        public async Task<bool> UpdateAsync(string ownerId, string id, TripEntity entity)
+        {
+            if (Guid.TryParse(ownerId, out var ownerGuid))
+            {
+                var trip = await _context.Trips.FindAsync(id);
+                if (trip == null || trip.OwnerId != ownerGuid) return false;
+                trip.Name = entity.Name;
+                trip.Destination = entity.Destination;
+                trip.Description = entity.Description;
+                trip.StartDate = entity.StartDate;
+                trip.EndDate = entity.EndDate;
+
+                return await _context.SaveChangesAsync() > 0;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid owner ID (" + ownerId + ") format.");
+            }
+        }
+
+        public async Task<bool> DeleteAsync(string ownerId, string id)
+        {
+            if (Guid.TryParse(ownerId, out var ownerGuid))
+            {
+                var trip = await _context.Trips.FindAsync(id);
+                if (trip == null || trip.OwnerId != ownerGuid) return false;
+                _context.Trips.Remove(trip);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid owner ID (" + ownerId + ") format.");
+            }
         }
     }
 }

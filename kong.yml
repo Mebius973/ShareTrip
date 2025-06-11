@@ -1,0 +1,30 @@
+_format_version: "3.0"
+
+services:
+  - name: user-api
+    url: http://user-api:8080
+    routes:
+      - name: route1
+        paths:
+          - /api/user
+        strip_path: true
+        plugins:
+          - name: request-transformer
+            config:
+              add:
+                headers:
+                  - "X-Forwarded-Prefix:/api/user"
+
+  - name: trip-api
+    url: http://trip-api:8080
+    routes:
+      - name: route2
+        paths:
+          - /api/trip
+        strip_path: true
+        plugins:
+          - name: request-transformer
+            config:
+              add:
+                headers:
+                  - "X-Forwarded-Prefix:/api/trip"

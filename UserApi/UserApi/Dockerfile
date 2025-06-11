@@ -27,4 +27,5 @@ RUN dotnet publish "./UserApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY keys /app/keys
 ENTRYPOINT ["dotnet", "UserApi.dll"]

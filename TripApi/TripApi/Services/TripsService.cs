@@ -10,25 +10,25 @@ namespace TripApi.Services
         {
             _tripRepository = tripRepository;
         }
-        public async Task<IList<TripEntity>> GetAllAsync()
+        public async Task<IList<TripEntity>> GetAllAsync(string ownerId)
         {
-            return await _tripRepository.GetAllAsync();
+            return await _tripRepository.GetAllAsync(ownerId);
         }
-        public async Task<TripEntity?> GetAsync(int id) { 
-            return await _tripRepository.GetAsync(id);
+        public async Task<TripEntity?> GetAsync(string ownerId, string id) { 
+            return await _tripRepository.GetAsync(ownerId, id);
         }
-        public async Task<bool> CreateAsync(Guid ownerId, TripEntity trip)
+        public async Task<bool> CreateAsync(string ownerId, TripEntity trip)
         {
             return await _tripRepository.CreateAsync(ownerId, trip);
         }
 
-        public async Task<bool> UpdateAsync(int id, TripEntity trip) {
-            return await _tripRepository.UpdateAsync(id, trip);
+        public async Task<bool> UpdateAsync(string ownerId, string id, TripEntity trip) {
+            return await _tripRepository.UpdateAsync(ownerId, id, trip);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(string ownerId, string id)
         {
-            return await _tripRepository.DeleteAsync(id);
+            return await _tripRepository.DeleteAsync(ownerId, id);
         }
     }
 }

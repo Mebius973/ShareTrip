@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using TripApi.Entities;
 using TripApi.Services;
+using TripApi.Utils;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TripApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize]
     public class TripsController : ControllerBase
@@ -22,17 +23,26 @@ namespace TripApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            return Ok(await _tripService.GetAllAsync());
+            var ownerId = UserUtils.getUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
+                return Unauthorized();
+
+            return Ok(await _tripService.GetAllAsync(ownerId));
         }
 
         // GET api/<TripsController>/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(string id)
         {
-            var trip  = await _tripService.GetAsync(id);
-            if (trip == null) { 
+            var ownerId = UserUtils.getUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
+                return Unauthorized();
+
+            var trip = await _tripService.GetAsync(ownerId, id);
+            if (trip == null)
+            {
                 return NotFound("Trip not found.");
-            } 
+            }
             return Ok(trip);
         }
 
@@ -40,11 +50,12 @@ namespace TripApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TripEntity trip)
         {
-            var idString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (idString == null || Guid.TryParse(idString, out Guid ownerId))
+            var ownerId = UserUtils.getUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
                 return Unauthorized();
 
-            if (await _tripService.CreateAsync(ownerId, trip)) { 
+            if (await _tripService.CreateAsync(ownerId, trip))
+            {
                 return Ok();
             }
 
@@ -53,9 +64,13 @@ namespace TripApi.Controllers
 
         // PUT api/<TripsController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] TripEntity trip)
+        public async Task<IActionResult> Put(string id, [FromBody] TripEntity trip)
         {
-            if (await _tripService.UpdateAsync(id, trip))
+            var ownerId = UserUtils.getUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
+                return Unauthorized();
+
+            if (await _tripService.UpdateAsync(ownerId, id, trip))
             {
                 return Ok();
             }
@@ -65,9 +80,13 @@ namespace TripApi.Controllers
 
         // DELETE api/<TripsController>/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
-            if (await _tripService.DeleteAsync(id))
+            var ownerId = UserUtils.getUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
+                return Unauthorized();
+
+            if (await _tripService.DeleteAsync(ownerId, id))
             {
                 return Ok();
             }

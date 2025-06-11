@@ -9,7 +9,7 @@ namespace TripApi.Data
 
         public DbSet<Trip> Trips { get; set; }
         public DbSet<Picture> Pictures { get; set; }
-        public DbSet<Commentary> Commentaries { get; set }
+        public DbSet<Commentary> Commentaries { get; set; }
         public DbSet<TripParticipant> TripParticipants { get; set; }
 
 

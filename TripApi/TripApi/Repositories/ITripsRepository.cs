@@ -4,10 +4,10 @@ namespace TripApi.Repositories
 {
     public interface ITripsRepository
     {
-        Task<IList<TripEntity>> GetAllAsync();
-        Task<TripEntity?> GetAsync(int id);
-        Task<bool> CreateAsync(Guid ownerId, TripEntity entity);
-        Task<bool> UpdateAsync(int id, TripEntity entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IList<TripEntity>> GetAllAsync(string ownerId);
+        Task<TripEntity?> GetAsync(string ownerId, string id);
+        Task<bool> CreateAsync(string ownerId, TripEntity entity);
+        Task<bool> UpdateAsync(string ownerId, string id, TripEntity entity);
+        Task<bool> DeleteAsync(string ownerId, string id);
     }
 }

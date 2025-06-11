@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.OpenApi.Models;
+using OpenIddict.Abstractions;
+using System.Security.Cryptography;
 using UserApi.Data;
 using UserApi.Data.Models;
 using UserApi.Repositories;
@@ -10,53 +11,91 @@ using UserApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// DbContext
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Injection des services
+builder.Services.AddScoped<IUserRepository, UserRepository>(); // Repository pour les utilisateurs
+builder.Services.AddScoped<UserService>(); // Service pour la logique métier des utilisateurs
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<UserService>();
-
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+// ► OpenIddict
+var encryptionCertStream = File.OpenRead("keys/encryption.pfx");
+builder.Services.AddOpenIddict()
+    // ── Persistance EF Core (clients, scopes…)
+    .AddCore(opt => opt
+        .UseEntityFrameworkCore()
+        .UseDbContext<AppDbContext>())
+
+    // ── Serveur OAuth2 / OIDC
+    .AddServer(opt =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
-});
+        opt.SetTokenEndpointUris("/connect/token");      // flow password/refresh
+        opt.AllowPasswordFlow()
+           .AllowRefreshTokenFlow();
+
+        // Scopes si besoin
+        opt.RegisterScopes(OpenIddictConstants.Scopes.Email,
+                           OpenIddictConstants.Scopes.Profile,
+                           OpenIddictConstants.Scopes.Roles);
+
+        // ── Clé RSA (signature RS256)
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(File.ReadAllText(builder.Configuration["Jwt:PrivateKeyPath"]));
+        opt.AddSigningKey(new RsaSecurityKey(rsa));
+        opt.AddEncryptionCertificate(encryptionCertStream, "motdepasse");
+
+        // Pipeline ASP.NET
+        opt.UseAspNetCore()
+           .EnableTokenEndpointPassthrough(); // la réponse JSON sort directement
+    })
+
+    // ── Validation des JWT pour tes autres APIs (ou la même)
+    .AddValidation(opt =>
+    {
+        opt.UseLocalServer();   // même serveur que l’émetteur
+        opt.UseAspNetCore();
+    });
+
+// Auth/Autorisation
+builder.Services.AddAuthentication()
+                .AddJwtBearer(); // déjà géré par OpenIddict.Validation
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.Lifetime.ApplicationStopped.Register(() => encryptionCertStream.Dispose());
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.UseSwagger(c =>
+    {
+        c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+        {
+            var prefix = httpReq.Headers["X-Forwarded-Prefix"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                swaggerDoc.Servers = new List<OpenApiServer> {
+                new OpenApiServer { Url = prefix }
+            };
+            }
+        });
+    });
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();   // <-- IMPORTANT : avant Authorization
 app.UseAuthorization();
 
 app.MapControllers();

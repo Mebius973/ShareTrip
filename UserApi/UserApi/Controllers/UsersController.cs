@@ -11,7 +11,7 @@ using UserApi.Services;
 
 namespace UserApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {

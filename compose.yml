@@ -1,21 +1,40 @@
 services:
+  kong:
+    image: kong:3.6
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+    ports:
+      - "8000:8000"     # Public proxy port
+      - "8001:8001"     # Admin API
+    volumes:
+      - ./kong.yml:/kong/kong.yml
+
   user-api:
     build: ./UserApi/UserApi
+    expose:
+      - "8080"
     ports:
       - "9000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=db;Database=userdb;Username=postgres;Password=postgres
+      Jwt__PrivateKeyPath: /keys/private.key
+      Jwt__PublicKeyPath: /keys/public.key
+    volumes:
+      - ./keys:/keys:ro
     depends_on:
       - db
-    networks:
-      - share_trip
 
   trip-api:
     build: ./TripApi/TripApi
-    ports:
-      - "9001:8080"
+    expose:
+      - "8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=db;Database=tripdb;Username=postgres;Password=postgres
     depends_on:
       - db
-    networks:
-      - share_trip
 
   db:
     image: postgres:latest
@@ -26,9 +45,3 @@ services:
       - ./db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=postgres
-    networks:
-      - share_trip
-
-networks:
-  share_trip:
-    driver: bridge

@@ -38,6 +38,9 @@ namespace TripApi.Migrations
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PictureId")
                         .HasColumnType("uuid");
 
@@ -67,6 +70,9 @@ namespace TripApi.Migrations
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("TripId")
                         .HasColumnType("uuid");
@@ -124,7 +130,7 @@ namespace TripApi.Migrations
 
                     b.HasKey("TripId", "UserId");
 
-                    b.ToTable("TripParticipant");
+                    b.ToTable("TripParticipants");
                 });
 
             modelBuilder.Entity("TripApi.Data.Models.Commentary", b =>

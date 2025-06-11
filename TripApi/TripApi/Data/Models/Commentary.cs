@@ -6,6 +6,7 @@ namespace TripApi.Data.Models
     public class Commentary
     {
         public Guid Id { get; set; }
+        public Guid OwnerId { get; set; }
         public string Author { get; set; } = string.Empty;
         public string Text { get; set; } = string.Empty;
         public int Likes { get; set; } = 0; // Default value for likes

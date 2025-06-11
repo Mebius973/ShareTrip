@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TripApi.Data.Models;
 using TripApi.Entities;
 using TripApi.Services;
@@ -7,8 +8,9 @@ using TripApi.Services;
 
 namespace TripApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
+    [Authorize]
     public class PicturesController : ControllerBase
     {
         private readonly PicturesService _picturesService;

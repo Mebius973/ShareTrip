@@ -6,6 +6,7 @@ namespace TripApi.Data.Models
     public class Picture
     {
         public Guid Id { get; set; }
+        public Guid OwnerId { get; set; }
         public string Url { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime DateTaken { get; set; }
