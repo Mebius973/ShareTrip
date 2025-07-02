@@ -21,21 +21,12 @@ namespace UserApi.Data
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
-                return TypedResults.BadRequest(result.Errors);
-
-            return TypedResults.Ok();
-        }
-        public async Task<LoggedInUserEntity?> LoginAsync(UserEntity model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password)) {
-                return new LoggedInUserEntity
-                {
-                    Id = user.Id,
-                    Email = user.Email
-                };
+            {
+                var errors = result.Errors.Select(e => new { e.Code, e.Description });
+                return TypedResults.BadRequest(errors);
             }
-            return null;
+
+            return TypedResults.Ok(new { user.Id, user.Email });
         }
     }
 }

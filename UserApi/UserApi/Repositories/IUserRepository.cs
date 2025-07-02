@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿namespace UserApi.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using UserApi.Entities;
 
-namespace UserApi.Repositories
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
-        Task<IResult> CreateAsync(UserEntity model);
-        Task<LoggedInUserEntity?> LoginAsync(UserEntity model);
-    }
+    Task<IResult> CreateAsync(UserEntity model);
 }

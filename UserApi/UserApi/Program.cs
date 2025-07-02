@@ -8,6 +8,7 @@ using UserApi.Data;
 using UserApi.Data.Models;
 using UserApi.Repositories;
 using UserApi.Services;
+using UserApi.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +74,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
+await OpenIddictSeeder.SeedAsync(app.Services);
 app.Lifetime.ApplicationStopped.Register(() => encryptionCertStream.Dispose());
 
 if (app.Environment.IsDevelopment())
