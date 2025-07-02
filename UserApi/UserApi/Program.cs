@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenIddict.Abstractions;
+using OpenIddict.Server;
 using System.Security.Cryptography;
 using UserApi.Data;
 using UserApi.Data.Models;
@@ -52,6 +53,11 @@ builder.Services.AddOpenIddict()
         opt.AddSigningKey(new RsaSecurityKey(rsa));
         opt.AddEncryptionCertificate(encryptionCertStream, "motdepasse");
 
+        if (builder.Environment.IsDevelopment())
+        {
+            opt.DisableHttpsRequirement();
+        }
+        
         // Pipeline ASP.NET
         opt.UseAspNetCore()
            .EnableTokenEndpointPassthrough(); // la réponse JSON sort directement
