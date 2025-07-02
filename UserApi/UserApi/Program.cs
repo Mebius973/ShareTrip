@@ -78,6 +78,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
 
 var app = builder.Build();
 await OpenIddictSeeder.SeedAsync(app.Services);
@@ -106,7 +107,14 @@ if (!builder.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseAuthentication();   // <-- IMPORTANT : avant Authorization
+app.UseCors(policy =>
+    policy.WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+);
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

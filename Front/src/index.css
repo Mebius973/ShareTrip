@@ -1,0 +1,13 @@
+body {
+  margin: 0px;
+}
+
+.main-button {
+  font-size: 1.1rem;
+  height: 60px;
+  width: 300px;
+  padding: 10px 20px;
+  border: 2px solid #007bff;
+  border-radius: 0px;
+  cursor: pointer;
+}

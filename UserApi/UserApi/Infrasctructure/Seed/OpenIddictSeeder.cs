@@ -10,22 +10,27 @@ public static class OpenIddictSeeder
         using var scope = serviceProvider.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        if (await manager.FindByClientIdAsync("postman-client") is null)
+        List<string> clients = new[] {"postman-client", "shareTripFront-client"}.ToList();
+        
+        foreach ( var client in clients)
         {
-            await manager.CreateAsync(new OpenIddictApplicationDescriptor
+            if (await manager.FindByClientIdAsync(client) is null)
             {
-                ClientId = "postman-client",
-                ClientSecret = "secret",
-                DisplayName = "Client for testing via Postman",
-                Permissions =
+                await manager.CreateAsync(new OpenIddictApplicationDescriptor
                 {
-                    OpenIddictConstants.Permissions.Endpoints.Token,
-                    OpenIddictConstants.Permissions.GrantTypes.Password,
-                    OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
-                    OpenIddictConstants.Permissions.Scopes.Email,
-                    OpenIddictConstants.Permissions.Scopes.Profile
-                }
-            });
+                    ClientId = client,
+                    ClientSecret = "secret",
+                    DisplayName = $"Client for testing via {client}",
+                    Permissions =
+                    {
+                        OpenIddictConstants.Permissions.Endpoints.Token,
+                        OpenIddictConstants.Permissions.GrantTypes.Password,
+                        OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                        OpenIddictConstants.Permissions.Scopes.Email,
+                        OpenIddictConstants.Permissions.Scopes.Profile
+                    }
+                });
+            }
         }
     }
 }
