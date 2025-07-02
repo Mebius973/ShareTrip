@@ -38,7 +38,7 @@ builder.Services.AddOpenIddict()
     // ── Serveur OAuth2 / OIDC
     .AddServer(opt =>
     {
-        opt.SetTokenEndpointUris("/connect/token");      // flow password/refresh
+        opt.SetTokenEndpointUris("/login");      // flow password/refresh
         opt.AllowPasswordFlow()
            .AllowRefreshTokenFlow();
 
@@ -55,7 +55,7 @@ builder.Services.AddOpenIddict()
 
         if (builder.Environment.IsDevelopment())
         {
-            opt.DisableHttpsRequirement();
+            opt.UseAspNetCore().DisableTransportSecurityRequirement();
         }
         
         // Pipeline ASP.NET
@@ -101,7 +101,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!builder.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();   // <-- IMPORTANT : avant Authorization
 app.UseAuthorization();
 

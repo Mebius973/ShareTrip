@@ -4,5 +4,6 @@ using UserApi.Entities;
 
 public interface IUserRepository
 {
-    Task<IResult> CreateAsync(UserEntity model);
+    Task<IResult> CreateAsync(CreateUserEntity model);
+    Task<(LoggedInUserEntity?, IList<string>)> LoginAsync(String email, string password);
 }
