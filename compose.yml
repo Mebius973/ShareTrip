@@ -18,13 +18,13 @@ services:
       - "9000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Host=db;Database=share_trip;Username=postgres;Password=postgres
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=share_trip;Username=postgres;Password=postgres
       Jwt__PrivateKeyPath: /keys/private.key
       Jwt__PublicKeyPath: /keys/public.key
     volumes:
       - ./keys:/keys:ro
     depends_on:
-      - db
+      - postgres
 
   trip-api:
     build: ./TripApi/TripApi
@@ -32,18 +32,29 @@ services:
       - "8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Host=db;Database=share_trip;Username=postgres;Password=postgres
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=share_trip;Username=postgres;Password=postgres
     depends_on:
-      - db
+      - postgres
 
-  db:
+  postgres:
     image: postgres:latest
     container_name: postgres
     ports:
     - "5432:5432"
     volumes:
-      - ./db-data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: share_trip
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+    - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo

@@ -22,72 +22,6 @@ namespace TripApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TripApi.Data.Models.Commentary", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PictureId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PictureId");
-
-                    b.ToTable("Commentaries");
-                });
-
-            modelBuilder.Entity("TripApi.Data.Models.Picture", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("DateTaken")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TripId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TripId");
-
-                    b.ToTable("Pictures");
-                });
-
             modelBuilder.Entity("TripApi.Data.Models.Trip", b =>
                 {
                     b.Property<Guid>("Id")
@@ -133,28 +67,6 @@ namespace TripApi.Migrations
                     b.ToTable("TripParticipants");
                 });
 
-            modelBuilder.Entity("TripApi.Data.Models.Commentary", b =>
-                {
-                    b.HasOne("TripApi.Data.Models.Picture", "Picture")
-                        .WithMany("Commentary")
-                        .HasForeignKey("PictureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Picture");
-                });
-
-            modelBuilder.Entity("TripApi.Data.Models.Picture", b =>
-                {
-                    b.HasOne("TripApi.Data.Models.Trip", "Trip")
-                        .WithMany("Pictures")
-                        .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Trip");
-                });
-
             modelBuilder.Entity("TripApi.Data.Models.TripParticipant", b =>
                 {
                     b.HasOne("TripApi.Data.Models.Trip", "Trip")
@@ -166,16 +78,9 @@ namespace TripApi.Migrations
                     b.Navigation("Trip");
                 });
 
-            modelBuilder.Entity("TripApi.Data.Models.Picture", b =>
-                {
-                    b.Navigation("Commentary");
-                });
-
             modelBuilder.Entity("TripApi.Data.Models.Trip", b =>
                 {
                     b.Navigation("Participants");
-
-                    b.Navigation("Pictures");
                 });
 #pragma warning restore 612, 618
         }

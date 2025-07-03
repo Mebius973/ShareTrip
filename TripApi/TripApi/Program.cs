@@ -19,10 +19,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ICommentariesRepository, CommentariesRepository>();
-builder.Services.AddScoped<CommentariesService>();
-builder.Services.AddScoped<IPicturesRepository, PicturesRepository>();
-builder.Services.AddScoped<PicturesService>();
 builder.Services.AddScoped<ITripsRepository, TripsRepository>();
 builder.Services.AddScoped<TripsService>();
 
